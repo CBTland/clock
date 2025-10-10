@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Clock</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #clock {
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="clock">Loading...</div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+
+            // Define time zones with IANA identifiers (handles DST automatically)
+            const timeZones = [{
+                    name: "BST",
+                    tz: "Europe/London"
+                },
+                {
+                    name: "KST",
+                    tz: "Asia/Seoul"
+                },
+                {
+                    name: "ET/EST",
+                    tz: "America/New_York"
+                },
+                {
+                    name: "PT/PST",
+                    tz: "America/Los_Angeles"
+                }
+            ];
+
+            // Format times using Intl.DateTimeFormat for accuracy
+            const times = timeZones.map(tz => {
+                const formatter = new Intl.DateTimeFormat('en-GB', {
+                    timeZone: tz.tz,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                return formatter.format(now);
+            });
+
+            // Update the display
+            document.getElementById("clock").textContent =
+                `${times[0]} ${timeZones[0].name} | ` +
+                `${times[1]} ${timeZones[1].name} | ` +
+                `${times[2]} ${timeZones[2].name} | ` +
+                `${times[3]} ${timeZones[3].name}`;
+        }
+
+        // Update clock every second
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial call
+    </script>
+</body>
+
+</html>
