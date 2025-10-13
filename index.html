@@ -30,42 +30,42 @@
         function updateClock() {
             const now = new Date();
 
-            // Define time zones with IANA identifiers (handles DST automatically)
-            const timeZones = [{
-                    name: "BST",
-                    tz: "Europe/London"
-                },
-                {
-                    name: "KST",
-                    tz: "Asia/Seoul"
-                },
-                {
-                    name: "ET/EST",
-                    tz: "America/New_York"
-                },
-                {
-                    name: "PT/PST",
-                    tz: "America/Los_Angeles"
-                }
+            // Define time zones with IANA identifiers
+            const timeZones = [
+                { tz: "Europe/London" },
+                { tz: "Asia/Seoul" },
+                { tz: "America/New_York" },
+                { tz: "America/Los_Angeles" }
             ];
 
-            // Format times using Intl.DateTimeFormat for accuracy
+            // Format times and get timezone abbreviations
             const times = timeZones.map(tz => {
-                const formatter = new Intl.DateTimeFormat('en-GB', {
+                // Formatter for time
+                const timeFormatter = new Intl.DateTimeFormat('en-GB', {
                     timeZone: tz.tz,
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false
                 });
-                return formatter.format(now);
+                const time = timeFormatter.format(now);
+
+                // Formatter for timezone abbreviation
+                const zoneFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz.tz,
+                    timeZoneName: 'short'
+                });
+                const parts = zoneFormatter.formatToParts(now);
+                const tzName = parts.find(part => part.type === 'timeZoneName').value;
+
+                return { time, tzName };
             });
 
             // Update the display
             document.getElementById("clock").textContent =
-                `${times[0]} ${timeZones[0].name} | ` +
-                `${times[1]} ${timeZones[1].name} | ` +
-                `${times[2]} ${timeZones[2].name} | ` +
-                `${times[3]} ${timeZones[3].name}`;
+                `${times[0].time} ${times[0].tzName} | ` +
+                `${times[1].time} ${times[1].tzName} | ` +
+                `${times[2].time} ${times[2].tzName} | ` +
+                `${times[3].time} ${times[3].tzName}`;
         }
 
         // Update clock every second
