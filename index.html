@@ -30,12 +30,12 @@
         function updateClock() {
             const now = new Date();
 
-            // Define time zones with IANA identifiers
+            // Define time zones with IANA identifiers and custom display names where needed
             const timeZones = [
-                { tz: "Europe/London" },
-                { tz: "Asia/Seoul" },
-                { tz: "America/New_York" },
-                { tz: "America/Los_Angeles" }
+                { tz: "Europe/London", displayName: null }, // Use dynamic BST/GMT
+                { tz: "Asia/Seoul", displayName: "KST" },   // Always KST (no DST)
+                { tz: "America/New_York", displayName: null }, // Use dynamic EDT/EST
+                { tz: "America/Los_Angeles", displayName: null } // Use dynamic PDT/PST
             ];
 
             // Format times and get timezone abbreviations
@@ -49,13 +49,24 @@
                 });
                 const time = timeFormatter.format(now);
 
-                // Formatter for timezone abbreviation
-                const zoneFormatter = new Intl.DateTimeFormat('en-US', {
-                    timeZone: tz.tz,
-                    timeZoneName: 'short'
-                });
-                const parts = zoneFormatter.formatToParts(now);
-                const tzName = parts.find(part => part.type === 'timeZoneName').value;
+                // Use custom displayName if provided, otherwise fetch dynamic timezone abbreviation
+                let tzName;
+                if (tz.displayName) {
+                    tzName = tz.displayName; // Use fixed name (e.g., KST)
+                } else {
+                    // Formatter for timezone abbreviation
+                    const zoneFormatter = new Intl.DateTimeFormat('en-US', {
+                        timeZone: tz.tz,
+                        timeZoneName: 'short'
+                    });
+                    const parts = zoneFormatter.formatToParts(now);
+                    tzName = parts.find(part => part.type === 'timeZoneName').value;
+
+                    // For Europe/London, ensure we use "BST" or "GMT" instead of "GMT+1" or similar
+                    if (tz.tz === "Europe/London") {
+                        tzName = tzName.includes("GMT+1") ? "BST" : "GMT";
+                    }
+                }
 
                 return { time, tzName };
             });
