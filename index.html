@@ -4,252 +4,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Clock with Calculator</title>
+    <title>World Clock</title>
     <style>
         body {
             background-color: black;
             color: white;
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
 
-        #clock {
-            font-size: 10px;
-            margin-bottom: 20px;
-        }
-
-        #calculator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #222;
-            padding: 20px;
-            border-radius: 10px;
-        }
-
-        #calc-input {
-            width: 200px;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 5px;
-        }
-
-        #calc-result {
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        .calc-buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 50px);
-            gap: 5px;
-        }
-
-        button {
-            padding: 10px;
-            font-size: 16px;
-            background-color: #444;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #555;
-        }
-    </style>
-</head>
+    #clock {
+        font-size: 10px;
+    }
+</style></head>
 
 <body>
     <div id="clock">Loading...</div>
-    <div id="calculator">
-        <input type="text" id="calc-input" placeholder="Enter expression (e.g., 1.05K + 2K)">
-        <div class="calc-buttons">
-            <button onclick="appendToInput('1')">1</button>
-            <button onclick="appendToInput('2')">2</button>
-            <button onclick="appendToInput('3')">3</button>
-            <button onclick="appendToInput('+')">+</button>
-            <button onclick="appendToInput('4')">4</button>
-            <button onclick="appendToInput('5')">5</button>
-            <button onclick="appendToInput('6')">6</button>
-            <button onclick="appendToInput('-')">-</button>
-            <button onclick="appendToInput('7')">7</button>
-            <button onclick="appendToInput('8')">8</button>
-            <button onclick="appendToInput('9')">9</button>
-            <button onclick="appendToInput('*')">*</button>
-            <button onclick="appendToInput('0')">0</button>
-            <button onclick="appendToInput('.')">.</button>
-            <button onclick="appendToInput('K')">K</button>
-            <button onclick="appendToInput('/')">/</button>
-            <button onclick="clearInput()">C</button>
-            <button onclick="calculate()">=</button>
-        </div>
-        <div id="calc-result"></div>
-    </div>
 
-    <script>
-        // World Clock functionality
-        function updateClock() {
-            const now = new Date();
-            const timeZones = [
-                { tz: "Europe/London", displayName: null },
-                { tz: "Asia/Seoul", displayName: "KST" },
-                { tz: "America/New_York", displayName: null },
-                { tz: "America/Los_Angeles", displayName: null }
-            ];
+<script>
+    function updateClock() {
+        const now = new Date();
 
-            const times = timeZones.map(tz => {
-                const timeFormatter = new Intl.DateTimeFormat('en-GB', {
-                    timeZone: tz.tz,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                });
-                const time = timeFormatter.format(now);
+        // Define time zones with IANA identifiers and custom display names where needed
+        const timeZones = [
+            { tz: "Europe/London", displayName: null }, // Use dynamic BST/GMT
+            { tz: "Asia/Seoul", displayName: "KST" },   // Always KST (no DST)
+            { tz: "America/New_York", displayName: null }, // Use dynamic EDT/EST
+            { tz: "America/Los_Angeles", displayName: null } // Use dynamic PDT/PST
+        ];
 
-                let tzName;
-                if (tz.displayName) {
-                    tzName = tz.displayName;
-                } else {
-                    const zoneFormatter = new Intl.DateTimeFormat('en-US', {
-                        timeZone: tz.tz,
-                        timeZoneName: 'short'
-                    });
-                    const parts = zoneFormatter.formatToParts(now);
-                    tzName = parts.find(part => part.type === 'timeZoneName').value;
-                    if (tz.tz === "Europe/London") {
-                        tzName = tzName.includes("GMT+1") ? "BST" : "GMT";
-                    }
-                }
-
-                return { time, tzName };
+        // Format times and get timezone abbreviations
+        const times = timeZones.map(tz => {
+            // Formatter for time
+            const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+                timeZone: tz.tz,
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
             });
+            const time = timeFormatter.format(now);
 
-            document.getElementById("clock").textContent =
-                `${times[0].time} ${times[0].tzName} | ` +
-                `${times[1].time} ${times[1].tzName} | ` +
-                `${times[2].time} ${times[2].tzName} | ` +
-                `${times[3].time} ${times[3].tzName}`;
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Calculator functionality
-        function appendToInput(value) {
-            const input = document.getElementById('calc-input');
-            input.value += value;
-        }
-
-        function clearInput() {
-            const input = document.getElementById('calc-input');
-            const result = document.getElementById('calc-result');
-            input.value = '';
-            result.textContent = '';
-        }
-
-        function parseNumber(str) {
-            str = str.trim().toUpperCase();
-            let multiplier = 1;
-            if (str.endsWith('K')) {
-                multiplier = 1000;
-                str = str.slice(0, -1);
-            } else if (str.endsWith('M')) {
-                multiplier = 1000000;
-                str = str.slice(0, -1);
-            } else if (str.endsWith('B')) {
-                multiplier = 1000000000;
-                str = str.slice(0, -1);
-            }
-            const num = parseFloat(str);
-            return isNaN(num) ? 0 : num * multiplier;
-        }
-
-        function calculate() {
-            const input = document.getElementById('calc-input').value.trim();
-            const resultDiv = document.getElementById('calc-result');
-
-            try {
-                // Split the input into tokens (numbers, operators)
-                const tokens = input.match(/(\d*\.?\d*[KMB]?)|([\+\-\*\/])/g);
-                if (!tokens) {
-                    resultDiv.textContent = 'Error: Invalid input';
-                    return;
-                }
-
-                // Convert tokens to numbers and operators
-                const parsedTokens = tokens.map(token => {
-                    if (/[\+\-\*\/]/.test(token)) {
-                        return token; // Operator
-                    } else {
-                        return parseNumber(token); // Number
-                    }
+            // Use custom displayName if provided, otherwise fetch dynamic timezone abbreviation
+            let tzName;
+            if (tz.displayName) {
+                tzName = tz.displayName; // Use fixed name (e.g., KST)
+            } else {
+                // Formatter for timezone abbreviation
+                const zoneFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz.tz,
+                    timeZoneName: 'short'
                 });
+                const parts = zoneFormatter.formatToParts(now);
+                tzName = parts.find(part => part.type === 'timeZoneName').value;
 
-                // Evaluate the expression
-                let result = parsedTokens[0];
-                for (let i = 1; i < parsedTokens.length; i += 2) {
-                    const operator = parsedTokens[i];
-                    const nextNumber = parsedTokens[i + 1];
-                    if (typeof nextNumber === 'undefined') {
-                        resultDiv.textContent = 'Error: Incomplete expression';
-                        return;
-                    }
-                    switch (operator) {
-                        case '+':
-                            result += nextNumber;
-                            break;
-                        case '-':
-                            result -= nextNumber;
-                            break;
-                        case '*':
-                            result *= nextNumber;
-                            break;
-                        case '/':
-                            if (nextNumber === 0) {
-                                resultDiv.textContent = 'Error: Division by zero';
-                                return;
-                            }
-                            result /= nextNumber;
-                            break;
-                    }
+                // For Europe/London, ensure we use "BST" or "GMT" instead of "GMT+1" or similar
+                if (tz.tz === "Europe/London") {
+                    tzName = tzName.includes("GMT+1") ? "BST" : "GMT";
                 }
-
-                // Format the result
-                let formattedResult;
-                if (Math.abs(result) >= 1000000000) {
-                    formattedResult = (result / 1000000000).toFixed(2) + 'B';
-                } else if (Math.abs(result) >= 1000000) {
-                    formattedResult = (result / 1000000).toFixed(2) + 'M';
-                } else if (Math.abs(result) >= 1000) {
-                    formattedResult = (result / 1000).toFixed(2) + 'K';
-                } else {
-                    formattedResult = result.toFixed(2);
-                }
-
-                resultDiv.textContent = `Result: ${formattedResult}`;
-            } catch (e) {
-                resultDiv.textContent = 'Error: Invalid expression';
             }
-        }
 
-        // Allow Enter key to trigger calculation
-        document.getElementById('calc-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                calculate();
-            }
+            return { time, tzName };
         });
-    </script>
-</body>
+
+        // Update the display
+        document.getElementById("clock").textContent =
+            `${times[0].time} ${times[0].tzName} | ` +
+            `${times[1].time} ${times[1].tzName} | ` +
+            `${times[2].time} ${times[2].tzName} | ` +
+            `${times[3].time} ${times[3].tzName}`;
+    }
+
+    // Update clock every second
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+</script></body>
 
 </html>
+
